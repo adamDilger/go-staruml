@@ -14,9 +14,10 @@ const (
 	Column          EntityType = "ERDColumn"
 	DataModel       EntityType = "ERDDataModel"
 	Diagram         EntityType = "ERDDiagram"
-	Entity          EntityType = "ERDEntity"
+	ErdEntityType   EntityType = "ERDEntity"
 	Relationship    EntityType = "ERDRelationship"
 	RelationshipEnd EntityType = "ERDRelationshipEnd"
+	Hyperlink       EntityType = "Hyperlink"
 )
 
 const (
@@ -24,6 +25,9 @@ const (
 	ColumnCompartmentView ViewType = "ERDColumnCompartmentView"
 	EntityView            ViewType = "ERDEntityView"
 	RelationshipView      ViewType = "ERDRelationshipView"
+	EdgeLabelView         ViewType = "EdgeLabelView"
+	HyperlinkView         ViewType = "HyperlinkView"
+	LabelView             ViewType = "LabelView"
 )
 
 type Ref struct {
@@ -40,7 +44,7 @@ type Tag struct {
 	Value  string `json:"value"`
 }
 
-func ReadMdj(in io.Reader) (*ErdEntity, error) {
+func ReadMdj(in io.Reader) (*Entity, error) {
 	var val json.RawMessage
 
 	decoder := json.NewDecoder(in)
@@ -59,7 +63,7 @@ func ReadMdj(in io.Reader) (*ErdEntity, error) {
 		return nil, fmt.Errorf("no valid types found for %s", t.Type)
 	}
 
-	var data ErdEntity
+	var data Entity
 	if err := json.Unmarshal(val, &data); err != nil {
 		return nil, err
 	}

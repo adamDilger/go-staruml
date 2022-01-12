@@ -6,11 +6,11 @@ type BaseEntity interface {
 	GetType() EntityType
 }
 
-type ErdEntity struct {
-	Id     string     `json:"_id"`
-	Name   string     `json:"name"`
-	Type   EntityType `json:"_type"`
-	Parent Ref        `json:"_parent"`
+type Entity struct {
+	Id         string     `json:"_id"`
+	Name       string     `json:"name"`
+	EntityType EntityType `json:"_type"`
+	Parent     Ref        `json:"_parent"`
 
 	OwnedElements ownedElementsList `json:"ownedElements"`
 	OwnedViews    ownedViewsList    `json:"ownedViews"`
@@ -27,6 +27,8 @@ func (o *ownedElementsList) UnmarshalJSON(data []byte) error {
 	}
 
 	for _, item := range rawJson {
+		item := item
+
 		entityType, err := getEntityType(item)
 		if err != nil {
 			return err
@@ -36,7 +38,15 @@ func (o *ownedElementsList) UnmarshalJSON(data []byte) error {
 
 		switch entityType {
 		case Project:
-		case Entity:
+			{
+				var e Entity
+				if err := json.Unmarshal(item, &e); err != nil {
+					return err
+				}
+
+				data = e
+			}
+		case ErdEntityType:
 			{
 				var e ErdEntity
 				if err := json.Unmarshal(item, &e); err != nil {
@@ -47,7 +57,7 @@ func (o *ownedElementsList) UnmarshalJSON(data []byte) error {
 			}
 		default:
 			{
-				var e ErdEntity
+				var e Entity
 				if err := json.Unmarshal(item, &e); err != nil {
 					return err
 				}
@@ -62,7 +72,7 @@ func (o *ownedElementsList) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (e ErdEntity) GetType() EntityType { return e.Type }
+func (e Entity) GetType() EntityType { return e.EntityType }
 
 func getEntityType(item json.RawMessage) (EntityType, error) {
 	typeInfo := struct {

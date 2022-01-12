@@ -27,6 +27,8 @@ func (o *ownedViewsList) UnmarshalJSON(data []byte) error {
 	}
 
 	for _, item := range rawJson {
+		item := item
+
 		entityType, err := getViewType(item)
 		if err != nil {
 			return err
@@ -35,18 +37,6 @@ func (o *ownedViewsList) UnmarshalJSON(data []byte) error {
 		var data BaseView
 
 		switch entityType {
-		case ColumnView:
-		case ColumnCompartmentView:
-		case EntityView:
-		case RelationshipView:
-			{
-				var e ErdView
-				if err := json.Unmarshal(item, &e); err != nil {
-					return err
-				}
-
-				data = e
-			}
 		default:
 			{
 				var e ErdView
