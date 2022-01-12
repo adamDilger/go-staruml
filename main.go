@@ -3,23 +3,18 @@ package main
 import (
 	"fmt"
 	"go-staruml/mdjreader"
-	"strings"
+	"os"
 )
-
-const input = `
-{
-	"_type": "Project",
-	"_id": "AAAAAAF9KutqdluOyNg=",
-	"name": "pbt"
-}
-`
 
 func main() {
 	fmt.Println("Hello World.")
 
-	sr := strings.NewReader(input)
+	f, err := os.Open("pbt.mdj")
+	if err != nil {
+		panic("no file")
+	}
 
-	out, err := mdjreader.ReadMdj(sr)
+	out, err := mdjreader.ReadMdj(f)
 	if err != nil {
 		panic(err)
 	}

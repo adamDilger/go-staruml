@@ -6,53 +6,38 @@ import (
 	"io"
 )
 
-type ErdView struct {
-}
-
 type EntityType string
+type ViewType string
 
 const (
-	Project   = "Project"
-	Entity    = "ErdEntity"
-	DataModel = "ErdDataModel"
+	Project         EntityType = "Project"
+	Column          EntityType = "ERDColumn"
+	DataModel       EntityType = "ERDDataModel"
+	Diagram         EntityType = "ERDDiagram"
+	Entity          EntityType = "ERDEntity"
+	Relationship    EntityType = "ERDRelationship"
+	RelationshipEnd EntityType = "ERDRelationshipEnd"
 )
+
+const (
+	ColumnView            ViewType = "ERDColumnView"
+	ColumnCompartmentView ViewType = "ERDColumnCompartmentView"
+	EntityView            ViewType = "ERDEntityView"
+	RelationshipView      ViewType = "ERDRelationshipView"
+)
+
+type Ref struct {
+	Ref string `json:"$ref"`
+}
 
 type Tag struct {
 	Type string `json:"_type"`
-	Id   string `json:"_id"`
-	// Parent struct { Ref string `json: "$ref"` } `json: "_parent"`
-	Name  string `json:"name"`
-	Kine  string `json:"kind"`
-	Value string `json:"value"`
-}
 
-type ErdEntity struct {
-	Id   string     `json:"_id"`
-	Name string     `json:"name"`
-	Type EntityType `json:"_type"`
-
-	// Parent struct { Ref string `json: "$ref"` } `json: "_parent"`
-
-	OwnedElements []ErdEntity `json:"ownedElements"`
-	// OwnedViews    []BaseView   `json:"ownedViews"`
-
-	// Tags []Tag `json:"tags"`
-}
-
-func (e *ErdEntity) GetId() string   { return e.Id }
-func (e *ErdEntity) GetName() string { return e.Id }
-func (e *ErdEntity) GetType() string { return e.Id }
-
-type BaseEntity interface {
-	GetId() string
-	GetName() string
-	GetType() EntityType
-}
-
-type BaseView interface {
-	Id() string
-	Name() string
-	Type() string
+	Id     string `json:"_id"`
+	Parent Ref    `json:"_parent"`
+	Name   string `json:"name"`
+	Kine   string `json:"kind"`
+	Value  string `json:"value"`
 }
 
 func ReadMdj(in io.Reader) (*ErdEntity, error) {
@@ -63,27 +48,21 @@ func ReadMdj(in io.Reader) (*ErdEntity, error) {
 		return nil, err
 	}
 
-	type tp struct {
-		Type  EntityType `json:"_type"`
-		Hello string     `json:"hello"`
-	}
-
-	var t tp
+	t := struct {
+		Type EntityType `json:"_type"`
+	}{}
 	if err := json.Unmarshal(val, &t); err != nil {
 		return nil, err
 	}
 
-	switch t.Type {
-	case Project:
-		{
-			var data ErdEntity
-			if err := json.Unmarshal(val, &data); err != nil {
-				return nil, err
-			}
-
-			return &data, nil
-		}
+	if t.Type != Project {
+		return nil, fmt.Errorf("no valid types found for %s", t.Type)
 	}
 
-	return nil, fmt.Errorf("no valid types found for %s", t.Type)
+	var data ErdEntity
+	if err := json.Unmarshal(val, &data); err != nil {
+		return nil, err
+	}
+
+	return &data, nil
 }
